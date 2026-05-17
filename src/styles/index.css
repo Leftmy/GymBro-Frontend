@@ -1,0 +1,28 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+.gymbro-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 25%, transparent) transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.gymbro-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.gymbro-scroll::-webkit-scrollbar-track { background: transparent; }
+.gymbro-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--foreground) 25%, transparent);
+  border-radius: 999px;
+}
+.gymbro-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--foreground) 45%, transparent);
+}
+
+/* Completely hidden scrollbar — still scrollable via touch/drag */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
