@@ -6,7 +6,7 @@ import { blogService } from "@/app/services";
 import type { Post, PostCreatePayload, Status } from "@/app/shared/types/api";
 import { SkeletonList } from "@/app/shared/components/common/SkeletonList";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 // ── Create Post Modal ─────────────────────────────────────────────────────────
 function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
@@ -184,7 +184,7 @@ export function BlogPage() {
     setItems(null);
     blogService
       .getPosts({ limit: PAGE_SIZE, offset })
-      .then((r) => { setItems(r); setTotal(r.total); });
+      .then((r) => { setItems(r.results); setTotal(r.total); });
   };
 
   
@@ -193,6 +193,8 @@ export function BlogPage() {
   const lastOffset = Math.max(0, Math.floor((total - 1) / PAGE_SIZE) * PAGE_SIZE);
   const from = Math.min(offset + 1, total);
   const to = Math.min(offset + PAGE_SIZE, total);
+  const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
   
   
   return (
@@ -267,26 +269,71 @@ export function BlogPage() {
 
       {/* Pagination */}
       {total > PAGE_SIZE && (
-        <div className="flex items-center justify-between gap-2 pt-2">
-          <button
-            disabled={offset === 0}
-            onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            {t("blog.previous")}
-          </button>
-          <span className="text-muted-foreground text-sm">
-            {t("blog.showing", { from, to, total })}
-          </span>
-          <button
-            disabled={offset >= lastOffset}
-            onClick={() => setOffset(offset + PAGE_SIZE)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
-          >
-            {t("blog.next")}
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        <div className="grid grid-cols-3 items-center pt-2">
+          
+          {/* Left controls */}
+          <div className="justify-self-start">
+            <button
+              disabled={offset === 0}
+              onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {t("blog.previous")}
+            </button>
+          </div>
+
+          {/* Center info + page buttons */}
+          <div className="flex flex-col items-center gap-2">
+            
+            {/* Page info */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Page <span className="text-foreground">{currentPage}</span> / {totalPages}
+              </span>
+
+              <span className="opacity-50">•</span>
+
+              <span>
+                {from}–{to} of {total}
+              </span>
+            </div>
+
+            {/* Page buttons */}
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }).map((_, i) => {
+                const pageOffset = i * PAGE_SIZE;
+                const isActive = pageOffset === offset;
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setOffset(pageOffset)}
+                    className={`px-2 py-1 rounded border text-sm transition ${
+                      isActive
+                        ? "bg-foreground text-background"
+                        : "border-border hover:bg-muted"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right controls */}
+          <div className="justify-self-end">
+            <button
+              disabled={offset >= lastOffset}
+              onClick={() => setOffset(offset + PAGE_SIZE)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+            >
+              {t("blog.next")}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
         </div>
       )}
 
