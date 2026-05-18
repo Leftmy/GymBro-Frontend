@@ -3,7 +3,7 @@ import { request } from "@/app/shared/services/apiClient";
 import { mockComments, mockPosts, mockUser } from "@/app/shared/mocks/mockData";
 
 export interface PostsPage { items: Post[]; total: number; }
-export interface CommentsPage { items: Comment[]; nextCursor: number | null; }
+export interface CommentsPage { items: Comment[]; nextCursor: string | null; }
 
 let posts: Post[] = structuredClone(mockPosts);
 let comments: Comment[] = structuredClone(mockComments);
@@ -27,19 +27,56 @@ export const blogService = {
     });
   },
 
-  async getComments(postId: string, { cursor, limit = 5 }: { cursor?: number; limit?: number } = {}): Promise<CommentsPage> {
-    return request<CommentsPage>(`/blog/posts/${postId}/comments/`, {
-      query: { cursor, limit },
-      mock: () => {
-        const all = comments.filter((c) => c.post === postId).sort((a, b) => a.id - b.id);
-        const startIndex = cursor != null ? all.findIndex((c) => c.id === cursor) + 1 : 0;
-        const slice = all.slice(startIndex, startIndex + limit);
-        const nextCursor = startIndex + limit < all.length ? slice[slice.length - 1]?.id ?? null : null;
-        return { items: structuredClone(slice), nextCursor };
-      },
-    });
-  },
+  async getComments(postId: string, {cursor, limit = 5,}: {cursor?: string; limit?: number;} = {}): Promise<CommentsPage> {
+    const response = await request<{
+      next: string | null;
+      previous: string | null;
+      results: Comment[];
+    }>(
+      `/blog/posts/${postId}/comments/`,
+      {
+        query: {
+          cursor,
+          limit,
+        },
 
+        mock: () => {
+          const all = comments
+            .filter((c) => c.post === postId)
+            .sort((a, b) => b.id - a.id);
+
+          const startIndex =
+            cursor != null
+              ? all.findIndex((c) => String(c.id) === cursor) + 1
+              : 0;
+
+          const slice = all.slice(startIndex, startIndex + limit);
+
+          const nextCursor =
+            startIndex + limit < all.length
+              ? String(slice[slice.length - 1]?.id)
+              : null;
+
+          return {
+            next: nextCursor,
+            previous: null,
+            results: structuredClone(slice),
+          };
+        },
+      }
+    );
+
+    const nextCursor =
+      response.next
+        ? (
+            response.next.startsWith("http")
+              ? new URL(response.next).searchParams.get("cursor")
+              : response.next
+          )
+        : null;
+
+    return { items: response.results, nextCursor,};
+  },
   async createComment(payload: { post: string; body: string }): Promise<Comment> {
     return request<Comment>("/blog/comments/", {
       method: "POST",

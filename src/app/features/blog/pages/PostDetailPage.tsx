@@ -10,7 +10,7 @@ export function PostDetailPage() {
   const { id = "" } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [cursor, setCursor] = useState<number | null>(null);
+  const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [body, setBody] = useState("");
@@ -26,8 +26,7 @@ export function PostDetailPage() {
   const loadMore = async () => {
     setLoadingMore(true);
     const r = await blogService.getComments(id, { cursor: cursor ?? undefined, limit: 3 });
-    console.log(r);
-    setComments((c) => [...c, ...r.results]);
+    setComments((c) => [...c, ...r.items]);
     setCursor(r.nextCursor);
     setHasMore(r.nextCursor !== null);
     setLoadingMore(false);
