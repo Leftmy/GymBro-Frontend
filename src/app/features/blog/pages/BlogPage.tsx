@@ -184,15 +184,17 @@ export function BlogPage() {
     setItems(null);
     blogService
       .getPosts({ limit: PAGE_SIZE, offset })
-      .then((r) => { setItems(r.items); setTotal(r.total); });
+      .then((r) => { setItems(r); setTotal(r.total); });
   };
 
+  
   useEffect(() => { load(); }, [offset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lastOffset = Math.max(0, Math.floor((total - 1) / PAGE_SIZE) * PAGE_SIZE);
   const from = Math.min(offset + 1, total);
   const to = Math.min(offset + PAGE_SIZE, total);
-
+  
+  
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -218,7 +220,7 @@ export function BlogPage() {
           <p className="text-muted-foreground">{t("blog.noPosts")}</p>
         </div>
       )}
-
+      
       {items && items.length > 0 && (
         <div className="space-y-3">
           {items.map((p) => (

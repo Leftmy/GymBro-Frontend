@@ -26,7 +26,8 @@ export function PostDetailPage() {
   const loadMore = async () => {
     setLoadingMore(true);
     const r = await blogService.getComments(id, { cursor: cursor ?? undefined, limit: 3 });
-    setComments((c) => [...c, ...r.items]);
+    console.log(r);
+    setComments((c) => [...c, ...r.results]);
     setCursor(r.nextCursor);
     setHasMore(r.nextCursor !== null);
     setLoadingMore(false);

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { brosService, gymService } from "@/app/services";
 import { mockUsers } from "@/app/shared/mocks/mockData";
+import { useAuth } from "@/app/features/auth/context/AuthContext";
 import type { Bro, User, UserWorkoutPlan } from "@/app/shared/types/api";
 import { ConfirmDialog } from "@/app/shared/components/common/ConfirmDialog";
 
@@ -115,6 +116,7 @@ function BroWorkouts({ user, onBack }: { user: User; onBack: () => void }) {
 // ── Main Friends Page ─────────────────────────────────────────────────────────
 export function MyBrosPage() {
   const { t } = useTranslation();
+  const { user } = useAuth(); 
 
   const [bros, setBros] = useState<Bro[] | null>(null);
   const [query, setQuery] = useState("");
@@ -208,7 +210,7 @@ export function MyBrosPage() {
   }, [bros]);
 
   const getBroFriend = (bro: Bro): User =>
-    bro.sender.id === 1 ? bro.receiver : bro.sender;
+    bro.sender.id === user.id ? bro.receiver : bro.sender;
 
   const doRemove = async () => {
     if (!removingBro) return;
