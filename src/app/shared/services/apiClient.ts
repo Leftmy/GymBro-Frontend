@@ -69,7 +69,7 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
 
   const headers: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json" };
   const token = tokenStorage.get();
-  if (token && token !== "undefined" && token !== "null") {
+  if (auth && token && token !== "undefined" && token !== "null") {
     headers.Authorization = `Bearer ${token}`;
   }
 

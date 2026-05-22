@@ -33,16 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   (async () => {
     try {
       const user = await userService.getMe();
-      setUser(user);
+      if (!cancelled) setUser(user);
     } catch (err: any) {
       if (err.status === 401) {
         authService.logout();
-        setUser(null);
+        if (!cancelled) {
+          setToken(null);
+          setUser(null);
+        }
       } else {
-        throw err;
+        console.error("Failed to validate auth token", err);
       }
     } finally {
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     }
   })();
 

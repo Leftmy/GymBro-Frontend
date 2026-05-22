@@ -88,7 +88,8 @@ export const brosService = {
     }
 
     // No single user specified — return workouts for all accepted bros.
-    const others = accepted.map((b) => (b.sender.uuid === mockUser.uuid ? b.receiver : b.sender));
+    const acceptedBros = await this.getBros("accepted");
+    const others = acceptedBros.map((b) => (b.sender.uuid === mockUser.uuid ? b.receiver : b.sender));
 
     const promises = others.map((u, idx) =>
       request<UserWorkoutPlan[]>('/gym/workouts/', {
