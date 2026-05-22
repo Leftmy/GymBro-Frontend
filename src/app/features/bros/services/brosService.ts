@@ -1,6 +1,6 @@
-import type { Bro, User } from "@/app/shared/types/api";
+import type { Bro, User, UserWorkoutPlan, DayParam } from "@/app/shared/types/api";
 import { request } from "@/app/shared/services/apiClient";
-import { mockBros, mockIncomingBros, mockOutgoingBros, mockUsers } from "@/app/shared/mocks/mockData";
+import { mockBros, mockIncomingBros, mockOutgoingBros, mockUsers, mockUserWorkouts, mockUser } from "@/app/shared/mocks/mockData";
 
 let accepted: Bro[] = structuredClone(mockBros);
 let incoming: Bro[] = structuredClone(mockIncomingBros);
@@ -68,6 +68,40 @@ export const brosService = {
         return undefined as unknown as void;
       },
     });
+  },
+
+  async getBrosWorkouts(userUuid?: string, day?: DayParam): Promise<UserWorkoutPlan[]> {
+    // If `userUuid` is provided, fetch workouts for that single user.
+    if (userUuid) {
+      return request<UserWorkoutPlan[]>('/gym/workouts/', {
+        query: { user_uuid: userUuid, day },
+        mock: () => {
+          // If requesting the current mockUser, return their workouts directly.
+          if (userUuid === mockUser.uuid) return structuredClone(mockUserWorkouts);
+
+          // Otherwise try to find a mock user and offset ids to avoid collisions.
+          const idx = mockUsers.findIndex((u) => u.uuid === userUuid);
+          const offset = idx >= 0 ? (idx + 1) * 1000 : 3000;
+          return structuredClone(mockUserWorkouts.map((w) => ({ ...w, id: w.id + offset })));
+        },
+      });
+    }
+
+    // No single user specified — return workouts for all accepted bros.
+    const others = accepted.map((b) => (b.sender.uuid === mockUser.uuid ? b.receiver : b.sender));
+
+    const promises = others.map((u, idx) =>
+      request<UserWorkoutPlan[]>('/gym/workouts/', {
+        query: { user_uuid: u.uuid, day },
+        mock: () => {
+          const offset = (idx + 1) * 1000;
+          return structuredClone(mockUserWorkouts.map((w) => ({ ...w, id: w.id + offset })));
+        },
+      })
+    );
+
+    const results = await Promise.all(promises);
+    return results.flat();
   },
 
   async searchUsers(query: string): Promise<User[]> {

@@ -6,7 +6,7 @@ export function BrosPage() {
   const { t } = useTranslation();
 
   const tabs = [
-    { to: "/bros/friends",  label: t("bros.friends"),          icon: Users },
+    { to: "/bros/my",  label: t("bros.friends"),          icon: Users },
     { to: "/bros/incoming", label: t("bros.incomingRequests"), icon: UserCheck },
     { to: "/bros/outgoing", label: t("bros.outgoingRequests"), icon: Send },
   ];

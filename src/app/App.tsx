@@ -50,8 +50,8 @@ export default function App() {
             </Route>
 
             <Route path="bros" element={<GuestGate><BrosPage /></GuestGate>}>
-              <Route index element={<Navigate to="friends" replace />} />
-              <Route path="friends" element={<MyBrosPage />} />
+              <Route index element={<Navigate to="my" replace />} />
+              <Route path="my" element={<MyBrosPage />} />
               <Route path="incoming" element={<IncomingRequestsPage />} />
               <Route path="outgoing" element={<OutgoingRequestsPage />} />
             </Route>
