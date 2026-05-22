@@ -68,9 +68,9 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
   }
 
   const headers: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json" };
-  if (auth) {
-    const token = tokenStorage.get();
-    if (token) headers.Authorization = `Bearer ${token}`;
+  const token = tokenStorage.get();
+  if (auth && token && token !== "undefined" && token !== "null") {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   const res = await fetch(buildUrl(path, query), {

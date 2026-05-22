@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Search, UserPlus, X, Users, ChevronRight, Loader2,
+  Search, UserPlus, X, Users, ChevronRight, Loader2, ChevronDown,
 } from "lucide-react";
-import { brosService, gymService } from "@/app/services";
+import { brosService } from "@/app/services";
 import { mockUsers } from "@/app/shared/mocks/mockData";
 import { useAuth } from "@/app/features/auth/context/AuthContext";
 import type { Bro, User, UserWorkoutPlan } from "@/app/shared/types/api";
 import { ConfirmDialog } from "@/app/shared/components/common/ConfirmDialog";
+import { nameToSlug } from "@/app/shared/utils/nameToSlug";
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = [
@@ -52,7 +53,22 @@ function BroWorkouts({ user, onBack }: { user: User; onBack: () => void }) {
   const { t } = useTranslation();
   const [items, setItems] = useState<UserWorkoutPlan[] | null>(null);
 
-  useEffect(() => { gymService.getWorkouts("all").then(setItems); }, [user.id]);
+  useEffect(() => {
+    let cancelled = false;
+    setItems(null);
+    brosService
+      .getBrosWorkouts(user.uuid, "all")
+      .then((res) => {
+        if (!cancelled) setItems(res);
+      })
+      .catch((err) => {
+        console.error("Failed to load bro workouts", err);
+        if (!cancelled) setItems([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user.uuid]);
 
   return (
     <div className="space-y-5">
@@ -77,36 +93,61 @@ function BroWorkouts({ user, onBack }: { user: User; onBack: () => void }) {
       )}
       {items && items.length > 0 && (
         <div className="grid sm:grid-cols-2 gap-3">
-          {items.map((uw) => (
-            <article key={uw.id} className="border border-border rounded-xl bg-card p-5 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3>{uw.workout.name}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t("gym.exercisesCount", { count: uw.workout.exercises.length })}
-                  </p>
+          {items.map((uw) => {
+            return (
+              <article key={uw.id} className="border border-border rounded-xl bg-card p-5 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3>{uw.workout.name}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {t("gym.exercisesCount", { count: uw.workout.exercises.length })}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {uw.day_of_week && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted">
+                        {t(`gym.days.${DAY_KEY[uw.day_of_week]}`)}
+                      </span>
+                    )}
+                    {uw.is_active && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full text-black"
+                        style={{ backgroundColor: "var(--accent-lime, #84cc16)" }}
+                      >
+                        {t("gym.active")}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  {uw.day_of_week && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted">
-                      {t(`gym.days.${DAY_KEY[uw.day_of_week]}`)}
-                    </span>
-                  )}
-                  {uw.is_active && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full text-black"
-                      style={{ backgroundColor: "var(--accent-lime, #84cc16)" }}
-                    >
-                      {t("gym.active")}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {uw.workout.description && (
-                <p className="text-muted-foreground text-sm">{uw.workout.description}</p>
-              )}
-            </article>
-          ))}
+
+                {uw.workout.description && (
+                  <p className="text-muted-foreground text-sm">{uw.workout.description}</p>
+                )}
+
+                {/* Expand exercises */}
+                <details className="mt-2">
+                  <summary className="cursor-pointer flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                    <ChevronDown className="w-4 h-4" />
+                    {t("gym.showExercises")}
+                  </summary>
+                  <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
+                    {[...uw.workout.exercises]
+                      .sort((a, b) => a.order - b.order)
+                      .map((ex, idx) => (
+                        <li key={idx} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="truncate">
+                            {t(`iq.exerciseNames.${nameToSlug(ex.exercise.name)}`, { defaultValue: ex.exercise.name }) as string}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground">
+                            {t("gym.setsReps", { sets: ex.sets, reps: ex.reps })}
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                </details>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

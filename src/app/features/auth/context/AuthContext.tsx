@@ -22,11 +22,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(!!token);
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
-    let cancelled = false;
-    userService.getMe().then((u) => { if (!cancelled) { setUser(u); setLoading(false); } });
-    return () => { cancelled = true; };
-  }, [token]);
+  if (!token) {
+    setUser(null);
+    setLoading(false);
+    return;
+  }
+
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const user = await userService.getMe();
+      if (!cancelled) setUser(user);
+    } catch (err: any) {
+      if (err.status === 401) {
+        authService.logout();
+        if (!cancelled) {
+          setToken(null);
+          setUser(null);
+        }
+      } else {
+        console.error("Failed to validate auth token", err);
+      }
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [token]);
 
   const login = async (email: string, password: string) => {
     if (token !== null){
