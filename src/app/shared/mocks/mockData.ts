@@ -25,7 +25,7 @@ export const mockMuscles: MuscleGroup[] = [
   { id: 4,  name: "Biceps",     slug: "biceps" },
   { id: 5,  name: "Triceps",    slug: "triceps" },
   { id: 6,  name: "Abs",        slug: "abs" },
-  { id: 7,  name: "Quads",      slug: "quads" },
+  { id: 7,  name: "Quads",      slug: "quadriceps" },
   { id: 8,  name: "Hamstrings", slug: "hamstrings" },
   { id: 9,  name: "Glutes",     slug: "glutes" },
   { id: 10, name: "Calves",     slug: "calves" },
@@ -39,8 +39,8 @@ export const mockExercises: Exercise[] = [
   { id: 2,  name: "Incline Dumbbell Press",description: "Upper chest focus",                    difficulty: "Intermediate", muscles: [m("chest"), m("shoulders")] },
   { id: 3,  name: "Pull Up",               description: "Bodyweight back builder",               difficulty: "Hard",         muscles: [m("back"), m("biceps")] },
   { id: 4,  name: "Deadlift",              description: "Posterior chain king",                  difficulty: "Hard",         muscles: [m("back"), m("hamstrings"), m("glutes")] },
-  { id: 5,  name: "Squat",                 description: "Legs foundation",                       difficulty: "Intermediate", muscles: [m("quads"), m("glutes"), m("hamstrings")] },
-  { id: 6,  name: "Lunges",                description: "Single leg strength",                   difficulty: "Easy",         muscles: [m("quads"), m("glutes")] },
+  { id: 5,  name: "Squat",                 description: "Legs foundation",                       difficulty: "Intermediate", muscles: [m("quadriceps"), m("glutes"), m("hamstrings")] },
+  { id: 6,  name: "Lunges",                description: "Single leg strength",                   difficulty: "Easy",         muscles: [m("quadriceps"), m("glutes")] },
   { id: 7,  name: "Overhead Press",        description: "Standing shoulder press",               difficulty: "Intermediate", muscles: [m("shoulders"), m("triceps")] },
   { id: 8,  name: "Barbell Curl",          description: "Classic bicep builder",                 difficulty: "Easy",         muscles: [m("biceps")] },
   { id: 9,  name: "Tricep Dip",            description: "Bodyweight triceps",                    difficulty: "Intermediate", muscles: [m("triceps"), m("chest")] },
@@ -81,7 +81,7 @@ export const mockWorkoutPlans: WorkoutPlan[] = [
   {
     id: 3,
     name: "Leg Day",
-    description: "Quads, hamstrings, glutes",
+    description: "Quadriceps, hamstrings, glutes",
     is_public: false,
     exercises: [
       { exercise: mockExercises[4], sets: 5, reps: 5, rest_seconds: 120, order: 1 },

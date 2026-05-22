@@ -37,8 +37,8 @@ export const FRONT_GROUP_API: Record<string, string> = {
   obliques:   "abs",       // obliques map to abs
   traps:      "back",      // trapezius → back
   glutes:     "glutes",
-  quadriceps: "quads",
-  hips:       "quads",     // hip flexors → quads
+  quadriceps: "quadriceps",
+  hips:       "quadriceps", // hip flexors → quadriceps
   calves:     "calves",
   neck:       "neck",      // neck is its own muscle group
 };
@@ -72,7 +72,7 @@ export const GROUP_COLORS: Record<string, string> = {
   traps:        "#6366f1",  // indigo
   glutes:       "#ec4899",  // pink
   quadriceps:   "#22c55e",  // green
-  hips:         "#84cc16",  // lime     (distinct from quads)
+  hips:         "#84cc16",  // lime     (distinct from quadriceps)
   calves:       "#06b6d4",  // cyan
   neck:         "#14b8a6",  // teal — distinct from shoulders (orange) and back (indigo)
   // ── Back (additional) ──────────────────────────────
