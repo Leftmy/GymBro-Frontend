@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { authService, userService } from "@/app/services";
+import { tokenStorage } from "@/app/shared/services/apiClient";
+import { refreshTokenStorage } from "@/app/shared/services/refreshTokenStorage";
 import type { User } from "@/app/shared/types/api";
-
-const TOKEN_KEY = "gymbro_jwt";
 
 interface AuthCtx {
   user: User | null;
@@ -17,42 +17,75 @@ interface AuthCtx {
 const AuthContext = createContext<AuthCtx | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState<string | null>(() => tokenStorage.get());
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!token);
+  const [loading, setLoading] = useState<boolean>(Boolean(token));
 
   useEffect(() => {
-  if (!token) {
-    setUser(null);
-    setLoading(false);
-    return;
-  }
+    let cancelled = false;
 
-  let cancelled = false;
-
-  (async () => {
-    try {
-      const user = await userService.getMe();
-      if (!cancelled) setUser(user);
-    } catch (err: any) {
-      if (err.status === 401) {
-        authService.logout();
-        if (!cancelled) {
-          setToken(null);
-          setUser(null);
+    (async () => {
+      try {
+        // If we don't have an access token but do have a refresh token, try to refresh.
+        if (!token) {
+          const storedRefresh = refreshTokenStorage.get();
+          if (storedRefresh) {
+            const tokens = await authService.refresh();
+            if (tokens?.access) {
+              setToken(tokens.access);
+            } else {
+              // Can't refresh — ensure cleared state
+              authService.logout();
+              if (!cancelled) {
+                setToken(null);
+                setUser(null);
+              }
+              return;
+            }
+          } else {
+            if (!cancelled) setLoading(false);
+            return;
+          }
         }
-      } else {
-        console.error("Failed to validate auth token", err);
-      }
-    } finally {
-      if (!cancelled) setLoading(false);
-    }
-  })();
 
-  return () => {
-    cancelled = true;
-  };
-}, [token]);
+        // At this point we should have an access token; validate by fetching "me"
+        const me = await userService.getMe();
+        if (!cancelled) setUser(me);
+      } catch (err: any) {
+        if (err?.status === 401) {
+          // Try to refresh once more
+          const tokens = await authService.refresh();
+          if (tokens?.access) {
+            if (!cancelled) setToken(tokens.access);
+            try {
+              const me2 = await userService.getMe();
+              if (!cancelled) setUser(me2);
+            } catch {
+              authService.logout();
+              if (!cancelled) {
+                setToken(null);
+                setUser(null);
+              }
+            }
+          } else {
+            authService.logout();
+            if (!cancelled) {
+              setToken(null);
+              setUser(null);
+            }
+          }
+        } else {
+          console.error("Failed to validate auth token", err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const login = async (email: string, password: string) => {
     if (token !== null){
