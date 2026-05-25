@@ -239,7 +239,7 @@
     "postLabels": "Etiquetas",
     "postLabelsPlaceholder": "fitness, nutrición, consejos…",
     "postStatus": "Estado",
-    "statusDraft": "Borrador",
+    "statusDraft": "En espera de aprobación del administrador",
     "statusPublished": "Publicado",
     "submit": "Publicar",
     "submitting": "Enviando…",

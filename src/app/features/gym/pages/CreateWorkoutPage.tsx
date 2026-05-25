@@ -6,6 +6,7 @@ import { gymService, iqService } from "@/app/services";
 import type { DayOfWeek, Exercise, MuscleGroup, WorkoutExerciseMap } from "@/app/shared/types/api";
 import { exerciseSlug } from "@/app/services";
 import { nameToSlug } from "@/app/shared/utils/nameToSlug";
+import { getDifficultyLabel } from "@/app/shared/utils/difficulty";
 import { useExerciseFilters } from "@/app/shared/hooks/useExerciseFilters";
 import { ExerciseFilterModal } from "@/app/shared/components/common/ExerciseFilterModal";
 
@@ -396,7 +397,7 @@ function ExercisePicker({
             >
               <div className="flex justify-between gap-2">
                 <span>{tExercise(ex.name)}</span>
-                <span className="text-muted-foreground text-sm shrink-0">{ex.difficulty}</span>
+                <span className="text-muted-foreground text-sm shrink-0">{getDifficultyLabel(t, ex.difficulty)}</span>
               </div>
               <p className="text-muted-foreground text-sm mt-0.5">
                 {ex.muscles.map((m) => tMuscle(m)).join(", ")}

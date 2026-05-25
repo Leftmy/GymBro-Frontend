@@ -8,6 +8,7 @@ import { SkeletonList } from "@/app/shared/components/common/SkeletonList";
 import { EmptyState } from "@/app/shared/components/common/EmptyState";
 import { BodyMap } from "@/app/features/iq/components/BodyMap";
 import { ExerciseVideoModal } from "@/app/features/iq/components/ExerciseVideoModal";
+import { getDifficultyLabel } from "@/app/shared/utils/difficulty";
 
 export function MusclesPage() {
   const { t } = useTranslation();
@@ -115,7 +116,7 @@ export function MusclesPage() {
                   </span>
                   {tExercise(ex.name)}
                 </h3>
-                <span className="text-muted-foreground shrink-0">{ex.difficulty}</span>
+                <span className="text-muted-foreground shrink-0">{getDifficultyLabel(t, ex.difficulty)}</span>
               </div>
               {ex.description && <p className="text-muted-foreground mt-1">{ex.description}</p>}
               <div className="flex flex-wrap gap-1 mt-2">

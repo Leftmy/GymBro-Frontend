@@ -8,12 +8,7 @@ import { useExerciseFilters } from "@/app/shared/hooks/useExerciseFilters";
 import { ExerciseFilterModal } from "@/app/shared/components/common/ExerciseFilterModal";
 import { SkeletonList } from "@/app/shared/components/common/SkeletonList";
 import { ExerciseVideoModal } from "@/app/features/iq/components/ExerciseVideoModal";
-
-const DIFFICULTY_LABELS: Record<number, string> = {
-  1: "iq.difficultyEasy",
-  2: "iq.difficultyIntermediate",
-  3: "iq.difficultyHard",
-};
+import { getDifficultyLabel } from "@/app/shared/utils/difficulty";
 
 export function ExercisesPage() {
   const { t } = useTranslation();
@@ -69,10 +64,7 @@ export function ExercisesPage() {
         const m = muscles.find((x) => x.slug === value);
         return m ? tMuscle(m) : String(value);
       }
-      case "difficulty": {
-        const labelKey = DIFFICULTY_LABELS[value as number];
-        return labelKey ? t(labelKey) : String(value);
-      }
+      case "difficulty": return getDifficultyLabel(t, value);
       case "equipment":  return String(value);
       case "primary":    return t("iq.primaryOnly");
       case "id":         return `ID ${value}`;
@@ -156,7 +148,7 @@ export function ExercisesPage() {
                   </span>
                   {tExercise(ex.name)}
                 </h3>
-                <span className="text-muted-foreground shrink-0 text-sm">{ex.difficulty}</span>
+                <span className="text-muted-foreground shrink-0 text-sm">{getDifficultyLabel(t, ex.difficulty)}</span>
               </div>
               {ex.description && (
                 <p className="text-muted-foreground mt-1 text-sm">{ex.description}</p>

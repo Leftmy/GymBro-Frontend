@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import type { Exercise } from "@/app/shared/types/api";
 import { nameToSlug } from "@/app/shared/utils/nameToSlug";
+import { getDifficultyLabel } from "@/app/shared/utils/difficulty";
 
 export interface ExerciseSessionInfo {
   sets?: number;
@@ -77,7 +78,7 @@ export function ExerciseVideoModal({
           <div>
             <h2>{displayName}</h2>
             <p className="text-muted-foreground">
-              {muscleLine} · {exercise.difficulty}
+              {muscleLine} · {getDifficultyLabel(t, exercise.difficulty)}
             </p>
           </div>
           <button

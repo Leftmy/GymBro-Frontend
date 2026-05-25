@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { blogService } from "@/app/services";
 import type { Comment, Post } from "@/app/shared/types/api";
 import { SkeletonList } from "@/app/shared/components/common/SkeletonList";
+import { useAuth } from "@/app/features/auth/context/AuthContext";
 
 export function PostDetailPage() {
   const { t } = useTranslation();
   const { id = "" } = useParams();
   const [post, setPost] = useState<Post | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [saving, setSaving] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     blogService
@@ -22,6 +29,12 @@ export function PostDetailPage() {
       .then((p) => setPost(p ?? null))
       .catch(() => setPost(null));
   }, [id]);
+
+  useEffect(() => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditBody(post.body);
+  }, [post?.id]);
 
   const loadMore = async () => {
     setLoadingMore(true);
@@ -45,6 +58,25 @@ export function PostDetailPage() {
     setPosting(false);
   };
 
+  const handleSave = async () => {
+    if (!post) return;
+    setSaving(true);
+    try {
+      const updated = await blogService.updatePost(post.id, { title: editTitle, body: editBody });
+      setPost(updated);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!post) return;
+    if (!confirm("Delete post?")) return;
+    await blogService.deletePost(post.id);
+    navigate("/blog");
+  };
+
   if (!post) return <SkeletonList count={1} />;
 
   return (
@@ -54,13 +86,53 @@ export function PostDetailPage() {
       </Link>
 
       <header className="space-y-2">
-        <h1>{post.title}</h1>
-        <p className="text-muted-foreground">
-          {t("blog.by")} {post.author} · {new Date(post.created_at).toLocaleDateString()}
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            {editing ? (
+              <input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 rounded border border-border bg-background"
+              />
+            ) : (
+              <h1>{post.title}</h1>
+            )}
+            <p className="text-muted-foreground">
+              {t("blog.by")} {post.author} · {new Date(post.created_at).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            {post.author === user?.username && post.status === "draft" && !editing && (
+              <>
+                <button onClick={() => setEditing(true)} className="px-3 py-1.5 rounded border border-border hover:bg-muted text-sm">
+                  {t("profile.edit")}
+                </button>
+                <button onClick={handleDelete} className="px-3 py-1.5 rounded border border-destructive text-destructive text-sm">
+                  {t("gym.deleteWorkout")}
+                </button>
+              </>
+            )}
+
+            {editing && (
+              <>
+                <button onClick={handleSave} disabled={saving} className="px-3 py-1.5 rounded bg-foreground text-background text-sm">
+                  {saving ? t("common.loading") : t("profile.save")}
+                </button>
+                <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded border border-border text-sm">
+                  {t("common.cancel")}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </header>
 
-      <p className="whitespace-pre-line">{post.body}</p>
+      {editing ? (
+        <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} rows={8} className="w-full px-3 py-2 rounded border border-border bg-background resize-none" />
+      ) : (
+        <p className="whitespace-pre-line">{post.body}</p>
+      )}
 
       {/* Comments section */}
       <section className="border-t border-border pt-6 space-y-4">

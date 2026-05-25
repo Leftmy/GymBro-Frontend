@@ -5,11 +5,12 @@ import { PenSquare, X, Tag, MessageSquare, ChevronLeft, ChevronRight } from "luc
 import { blogService } from "@/app/services";
 import type { Post, PostCreatePayload, Status } from "@/app/shared/types/api";
 import { SkeletonList } from "@/app/shared/components/common/SkeletonList";
+import { useAuth } from "@/app/features/auth/context/AuthContext";
 
 const PAGE_SIZE = 10;
 
 // ── Create Post Modal ─────────────────────────────────────────────────────────
-function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function CreatePostModal({ onClose, onSaved, existingPost }: { onClose: () => void; onSaved: () => void; existingPost?: Post | null }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -39,8 +40,12 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
           ? labels.split(",").map((l) => l.trim()).filter(Boolean)
           : undefined,
       };
-      await blogService.createPost(payload);
-      onCreated();
+      if (existingPost) {
+        await blogService.updatePost(existingPost.id, payload);
+      } else {
+        await blogService.createPost(payload);
+      }
+      onSaved();
       onClose();
     } finally {
       setSubmitting(false);
@@ -53,6 +58,14 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!existingPost) return;
+    setTitle(existingPost.title ?? "");
+    setBody(existingPost.body ?? "");
+    setLabels((existingPost.labels ?? []).join(", "));
+    setStatus((existingPost.status ?? "draft") as Status);
+  }, [existingPost]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -68,7 +81,7 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <PenSquare className="w-4 h-4" />
-            <h2>{t("blog.createPostTitle")}</h2>
+            <h2>{existingPost ? t("blog.editPostTitle", { defaultValue: t("blog.createPostTitle") }) : t("blog.createPostTitle")}</h2>
           </div>
           <button
             onClick={onClose}
@@ -128,26 +141,6 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
             />
           </div>
 
-          {/* Status */}
-          <div className="space-y-1.5">
-            <label className="text-sm">{t("blog.postStatus")}</label>
-            <div className="flex gap-2">
-              {(["draft", "published"] as Status[]).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStatus(s)}
-                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                    status === s
-                      ? "bg-foreground text-background"
-                      : "border border-border hover:bg-muted"
-                  }`}
-                >
-                  {t(`blog.status${s.charAt(0).toUpperCase() + s.slice(1)}`)}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Footer */}
           <div className="flex gap-3 pt-2">
@@ -163,7 +156,7 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
               disabled={submitting}
               className="flex-1 px-4 py-2.5 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {submitting ? t("blog.submitting") : t("blog.submit")}
+              {submitting ? t("blog.submitting") : existingPost ? t("profile.save") : t("blog.submit")}
             </button>
           </div>
         </form>
@@ -175,10 +168,12 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
 // ── Blog Page ─────────────────────────────────────────────────────────────────
 export function BlogPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [items, setItems] = useState<Post[] | null>(null);
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
+  const [editPost, setEditPost] = useState<Post | null>(null);
 
   const load = () => {
     setItems(null);
@@ -225,45 +220,76 @@ export function BlogPage() {
       
       {items && items.length > 0 && (
         <div className="space-y-3">
-          {items.map((p) => (
-            <Link
-              key={p.id}
-              to={`/blog/${p.id}`}
-              className="group block bg-card border border-border rounded-xl p-5 hover:shadow-md hover:border-foreground/20 transition-all duration-200"
-            >
-              <div className="flex justify-between items-start gap-3">
-                <h3 className="group-hover:text-foreground transition-colors">{p.title}</h3>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-muted-foreground text-sm whitespace-nowrap">
-                    {new Date(p.created_at).toLocaleDateString()}
-                  </span>
-                  {p.status && p.status !== "published" && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full capitalize"
-                      style={{
-                        backgroundColor: p.status === "draft" ? "var(--accent-orange, #f97316)" : "var(--accent-blue, #3b82f6)",
-                        color: "#fff",
-                        opacity: 0.85,
-                      }}
-                    >
-                      {p.status}
+          {items.map((p) => {
+            const isAuthor = p.author === user?.username && p.status === "draft";
+            const statusKey = `blog.status${p.status?.charAt(0).toUpperCase() + p.status?.slice(1)}`;
+            return (
+              <div
+                key={p.id}
+                className="group block bg-card border border-border rounded-xl p-5 hover:shadow-md hover:border-foreground/20 transition-all duration-200"
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <Link to={`/blog/${p.id}`} className="flex-1">
+                    <h3 className="group-hover:text-foreground transition-colors">{p.title}</h3>
+                  </Link>
+
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-muted-foreground text-sm whitespace-nowrap">
+                      {new Date(p.created_at).toLocaleDateString()}
                     </span>
+                    {p.status && p.status !== "published" && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full capitalize"
+                        style={{
+                          backgroundColor: p.status === "draft" ? "var(--accent-orange, #f97316)" : "var(--accent-blue, #3b82f6)",
+                          color: "#fff",
+                          opacity: 0.85,
+                        }}
+                      >
+                        {t(statusKey)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground line-clamp-2 mt-1 leading-relaxed">{p.body}</p>
+
+                <div className="flex items-center gap-2 mt-3 text-muted-foreground text-sm justify-between">
+                  <div className="flex items-center gap-2">
+                    <span>{t("blog.by")} <span className="">{p.author}</span></span>
+                    <span>·</span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      {p.comments_count} {t("blog.comments")}
+                    </span>
+                  </div>
+
+                  {isAuthor && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditPost(p); }}
+                        className="px-3 py-1.5 rounded border border-border hover:bg-muted text-sm"
+                      >
+                        {t("profile.edit")}
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!confirm("Delete post?")) return;
+                          await blogService.deletePost(p.id);
+                          load();
+                        }}
+                        className="px-3 py-1.5 rounded border border-destructive text-destructive text-sm"
+                      >
+                        {t("gym.deleteWorkout")}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
-
-              <p className="text-muted-foreground line-clamp-2 mt-1 leading-relaxed">{p.body}</p>
-
-              <div className="flex items-center gap-2 mt-3 text-muted-foreground text-sm">
-                <span>{t("blog.by")} <span className="">{p.author}</span></span>
-                <span>·</span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  {p.comments_count} {t("blog.comments")}
-                </span>
-              </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -340,7 +366,15 @@ export function BlogPage() {
       {showCreate && (
         <CreatePostModal
           onClose={() => setShowCreate(false)}
-          onCreated={() => { setOffset(0); load(); }}
+          onSaved={() => { setOffset(0); load(); }}
+        />
+      )}
+
+      {editPost && (
+        <CreatePostModal
+          existingPost={editPost}
+          onClose={() => setEditPost(null)}
+          onSaved={() => { setEditPost(null); setOffset(0); load(); }}
         />
       )}
     </div>

@@ -120,6 +120,29 @@ export const blogService = {
     });
   },
 
+  async updatePost(id: string, payload: Partial<PostCreatePayload>): Promise<Post> {
+    return request<Post>(`/blog/posts/${id}/`, {
+      method: "PATCH",
+      body: payload,
+      mock: () => {
+        posts = posts.map((p) => (p.id === id ? { ...p, ...payload, updated_at: new Date().toISOString() } : p));
+        const updated = posts.find((p) => p.id === id);
+        if (!updated) throw new Error("Post not found");
+        return structuredClone(updated);
+      },
+    });
+  },
+
+  async deletePost(id: string): Promise<void> {
+    return request<void>(`/blog/posts/${id}/`, {
+      method: "DELETE",
+      mock: () => {
+        posts = posts.filter((p) => p.id !== id);
+        return undefined as unknown as void;
+      },
+    });
+  },
+
   async deleteComment(commentId: number): Promise<void> {
     return request<void>(`/blog/comments/${commentId}/`, {
       method: "DELETE",
