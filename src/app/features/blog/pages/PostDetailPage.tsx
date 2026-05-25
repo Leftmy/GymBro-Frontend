@@ -79,6 +79,22 @@ export function PostDetailPage() {
 
   if (!post) return <SkeletonList count={1} />;
 
+  // Normalize author/status checks to handle different API shapes (string or object)
+  const isAuthor = Boolean(
+    user && (
+      post.author === user.username ||
+      (typeof (post.author as any) === "object" && (post.author as any).username === user.username) ||
+      String(post.author) === String(user.id) ||
+      post.author === user.uuid
+    )
+  );
+
+  const normalizedStatus = String(post.status ?? "").toLowerCase();
+
+  // Debug output to help trace why edit/delete buttons may be hidden
+  // eslint-disable-next-line no-console
+  console.debug("[PostDetailPage] debug:", { post, user, isAuthor, normalizedStatus });
+
   return (
     <article className="max-w-2xl mx-auto space-y-6">
       <Link to="/blog" className="text-muted-foreground hover:text-foreground">
@@ -103,7 +119,7 @@ export function PostDetailPage() {
           </div>
 
           <div className="flex gap-2">
-            {post.author === user?.username && post.status === "draft" && !editing && (
+            {isAuthor && normalizedStatus === "draft" && !editing && (
               <>
                 <button onClick={() => setEditing(true)} className="px-3 py-1.5 rounded border border-border hover:bg-muted text-sm">
                   {t("profile.edit")}
@@ -164,23 +180,25 @@ export function PostDetailPage() {
           </button>
         )}
 
-        {/* Comment form */}
-        <form onSubmit={submit} className="space-y-3 pt-2">
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={3}
-            placeholder={t("blog.writeComment")}
-            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background resize-none"
-          />
-          <button
-            type="submit"
-            disabled={posting || !body.trim()}
-            className="px-4 py-2 rounded-lg bg-foreground text-background disabled:opacity-50"
-          >
-            {posting ? t("blog.posting") : t("blog.post")}
-          </button>
-        </form>
+        {/* Comment form (disabled for draft posts) */}
+        {normalizedStatus !== "draft" && (
+          <form onSubmit={submit} className="space-y-3 pt-2">
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={3}
+              placeholder={t("blog.writeComment")}
+              className="w-full px-3 py-2.5 rounded-lg border border-border bg-background resize-none"
+            />
+            <button
+              type="submit"
+              disabled={posting || !body.trim()}
+              className="px-4 py-2 rounded-lg bg-foreground text-background disabled:opacity-50"
+            >
+              {posting ? t("blog.posting") : t("blog.post")}
+            </button>
+          </form>
+        )}
       </section>
     </article>
   );

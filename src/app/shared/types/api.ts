@@ -24,6 +24,7 @@ export interface Exercise {
   id: number;
   name: string;
   description?: string;
+  description_i18n?: { [lang: string]: string };
   difficulty: string;
   muscles: MuscleGroup[];
 }

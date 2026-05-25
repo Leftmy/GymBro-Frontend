@@ -11,7 +11,7 @@ import { ExerciseVideoModal } from "@/app/features/iq/components/ExerciseVideoMo
 import { getDifficultyLabel } from "@/app/shared/utils/difficulty";
 
 export function ExercisesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [muscles, setMuscles] = useState<MuscleGroup[]>([]);
   const [items, setItems] = useState<Exercise[] | null>(null);
   const [video, setVideo] = useState<Exercise | null>(null);
@@ -55,6 +55,17 @@ export function ExercisesPage() {
 
   const tExercise = (name: string) =>
     t(`iq.exerciseNames.${nameToSlug(name)}`, { defaultValue: name }) as string;
+
+  const getExerciseDescription = (ex: Exercise) => {
+    const lang = (i18n.language || "en").split("-")[0];
+    const di18n = (ex as any).description_i18n as Record<string, string> | undefined;
+
+    if (di18n && typeof di18n === "object") {
+      return di18n[lang] ?? di18n["en"] ?? ex.description;
+    }
+
+    return ex.description;
+  };
 
   /** Human-readable label for each active committed filter key */
   const chipLabel = (key: string, value: unknown): string => {
@@ -132,39 +143,43 @@ export function ExercisesPage() {
 
       {items && items.length > 0 && (
         <div className="grid md:grid-cols-2 gap-3">
-          {items.map((ex) => (
-            <button
-              key={ex.id}
-              onClick={() => setVideo(ex)}
-              className="text-left border border-border rounded-xl p-4 bg-card hover:shadow-md hover:-translate-y-0.5 transition group"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2">
-                  <span
-                    className="w-7 h-7 rounded-full inline-flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
-                    style={{ backgroundColor: "color-mix(in oklab, var(--accent-orange) 25%, transparent)" }}
-                  >
-                    <Play className="w-3.5 h-3.5" style={{ color: "var(--accent-orange)" }} />
-                  </span>
-                  {tExercise(ex.name)}
-                </h3>
-                <span className="text-muted-foreground shrink-0 text-sm">{getDifficultyLabel(t, ex.difficulty)}</span>
-              </div>
-              {ex.description && (
-                <p className="text-muted-foreground mt-1 text-sm">{ex.description}</p>
-              )}
-              <div className="flex flex-wrap gap-1 mt-2">
-                {ex.muscles.map((m) => (
-                  <span
-                    key={m.id}
-                    className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-                  >
-                    {tMuscle(m)}
-                  </span>
-                ))}
-              </div>
-            </button>
-          ))}
+          {items.map((ex) => {
+            const desc = getExerciseDescription(ex);
+
+            return (
+              <button
+                key={ex.id}
+                onClick={() => setVideo(ex)}
+                className="text-left border border-border rounded-xl p-4 bg-card hover:shadow-md hover:-translate-y-0.5 transition group"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="flex items-center gap-2">
+                    <span
+                      className="w-7 h-7 rounded-full inline-flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
+                      style={{ backgroundColor: "color-mix(in oklab, var(--accent-orange) 25%, transparent)" }}
+                    >
+                      <Play className="w-3.5 h-3.5" style={{ color: "var(--accent-orange)" }} />
+                    </span>
+                    {tExercise(ex.name)}
+                  </h3>
+                  <span className="text-muted-foreground shrink-0 text-sm">{getDifficultyLabel(t, ex.difficulty)}</span>
+                </div>
+                {desc && (
+                  <p className="text-muted-foreground mt-1 text-sm">{desc}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {ex.muscles.map((m) => (
+                    <span
+                      key={m.id}
+                      className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                    >
+                      {tMuscle(m)}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
