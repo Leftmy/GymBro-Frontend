@@ -28,12 +28,26 @@ export function AssignWorkoutPage() {
     e.preventDefault();
     if (!planId) return;
     setSubmitting(true);
-    const created = await gymService.assignWorkoutToUser({
-      workout_plan_id: planId as number,
-      day_of_week: day === "" ? null : day,
-      is_active: active,
-    });
-    setLast(created);
+    const planIdNum = planId as number;
+    const dayOfWeek = day === "" ? null : day;
+    // If this workout plan is already assigned to the user, update the
+    // existing assignment instead of creating a duplicate.
+    const allUserWorkouts = await gymService.getWorkouts("all");
+    const existing = allUserWorkouts.find((uw) => uw.workout.id === planIdNum);
+    let result: UserWorkoutPlan;
+    if (existing) {
+      result = await gymService.updateUserWorkout(existing.id, {
+        day_of_week: dayOfWeek,
+        is_active: active,
+      });
+    } else {
+      result = await gymService.assignWorkoutToUser({
+        workout_plan_id: planIdNum,
+        day_of_week: dayOfWeek,
+        is_active: active,
+      });
+    }
+    setLast(result);
     setSubmitting(false);
     // Reset form
     setPlanId("");

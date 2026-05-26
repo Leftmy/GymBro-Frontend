@@ -164,6 +164,16 @@ export const gymService = {
     });
   },
 
+  async deleteUserWorkout(id: number): Promise<void> {
+    return request<void>(`/gym/user-workouts/${id}/`, {
+      method: "DELETE",
+      mock: () => {
+        userWorkouts = userWorkouts.filter((w) => w.id !== id);
+        return undefined as unknown as void;
+      },
+    });
+  },
+
   // Convenience for forms that need the catalog of templates.
   async listWorkoutPlans(): Promise<WorkoutPlan[]> {
     const data = await request<UserWorkoutPlan[]>("/gym/workouts/", {

@@ -195,7 +195,8 @@ export function MyWorkoutsPage() {
 
   const doDelete = async () => {
     if (!deleteTarget) return;
-    await gymService.deleteWorkout(deleteTarget.workout.id);
+    // Remove only the user assignment, not the workout template itself.
+    await gymService.deleteUserWorkout(deleteTarget.id);
     setDeleteTarget(null);
     load();
   };

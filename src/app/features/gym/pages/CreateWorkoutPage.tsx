@@ -43,13 +43,13 @@ export function CreateWorkoutPage() {
       is_public: isPublic,
       exercises: selected.map(({ name: _n, ...rest }) => rest),
     });
-    if (day !== null) {
-      await gymService.assignWorkoutToUser({
-        workout_plan_id: created.id,
-        day_of_week: day,
-        is_active: false,
-      });
-    }
+    // Always create a user assignment for the created workout so it appears
+    // in "My Workouts" (day can be null for "No specific day").
+    await gymService.assignWorkoutToUser({
+      workout_plan_id: created.id,
+      day_of_week: day,
+      is_active: false,
+    });
     setSubmitting(false);
     navigate("/gym/workouts");
   };
