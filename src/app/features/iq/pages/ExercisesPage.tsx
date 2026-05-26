@@ -16,6 +16,7 @@ export function ExercisesPage() {
   const [items, setItems] = useState<Exercise[] | null>(null);
   const [video, setVideo] = useState<Exercise | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [searchText, setSearchText] = useState<string>("");
 
   const {
     committed,
@@ -23,6 +24,7 @@ export function ExercisesPage() {
     activeCount,
     openModal,
     setDraftField,
+    setCommittedField,
     applyDraft,
     resetFilters,
     removeFilter,
@@ -34,6 +36,20 @@ export function ExercisesPage() {
     setItems(null);
     iqService.getExercises(committed).then(setItems);
   }, [committed]);
+
+  // Keep local search text in sync with committed.name
+  useEffect(() => {
+    setSearchText(committed.name ?? "");
+  }, [committed.name]);
+
+  // Debounce typing before applying to committed filters
+  // Guard: don't re-apply if the committed value already equals searchText
+  useEffect(() => {
+    const committedName = committed.name ?? "";
+    if (searchText === committedName) return;
+    const id = setTimeout(() => setCommittedField("name", searchText || undefined), 300);
+    return () => clearTimeout(id);
+  }, [searchText, setCommittedField, committed.name]);
 
   const handleOpenFilter = () => {
     openModal();
@@ -48,6 +64,7 @@ export function ExercisesPage() {
   const handleReset = () => {
     resetFilters();
     setFilterOpen(false);
+    setSearchText("");
   };
 
   const tMuscle = (m: MuscleGroup) =>
@@ -76,7 +93,7 @@ export function ExercisesPage() {
         return m ? tMuscle(m) : String(value);
       }
       case "difficulty": return getDifficultyLabel(t, value);
-      case "equipment":  return String(value);
+      case "equipment":  return t(`iq.equipmentOptions.${String(value)}`, { defaultValue: String(value) }) as string;
       case "primary":    return t("iq.primaryOnly");
       case "id":         return `ID ${value}`;
       default:           return String(value);
@@ -87,6 +104,21 @@ export function ExercisesPage() {
     <div className="space-y-4">
       {/* ── Toolbar: Filter button ── */}
       <div className="flex items-center gap-3">
+        {/*
+          Search temporarily disabled because localized names are incomplete
+          and cause inconsistent results across languages. Keep markup here
+          commented so it can be re-enabled later when localization is ready.
+
+          <div className="flex-1">
+            <input
+              type="search"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={t("iq.search")}
+              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm"
+            />
+          </div>
+        */}
         <button
           onClick={handleOpenFilter}
           className={[

@@ -79,6 +79,12 @@ export function ExerciseFilterModal({
         <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[65vh]">
 
           {/* Name search */}
+          {/*
+            Search temporarily disabled because localized names are incomplete
+            and cause inconsistent results across languages. Keep markup here
+            commented so it can be re-enabled later when localization is ready.
+
+            
           <Field label={t("iq.search").replace("…", "")}>
             <input
               type="text"
@@ -88,6 +94,7 @@ export function ExerciseFilterModal({
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
             />
           </Field>
+          */}
 
           {/* Muscle group */}
           <Field label={t("iq.muscles")}>
@@ -132,13 +139,20 @@ export function ExerciseFilterModal({
 
           {/* Equipment */}
           <Field label={t("iq.equipment")}>
-            <input
-              type="text"
+            <select
               value={draft.equipment ?? ""}
               onChange={(e) => onChange("equipment", e.target.value || undefined)}
-              placeholder={t("iq.equipmentPlaceholder")}
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-            />
+            >
+              <option value="">{t("iq.allEquipment")}</option>
+              <option value="barbell">{t("iq.equipmentOptions.barbell")}</option>
+              <option value="dumbbell">{t("iq.equipmentOptions.dumbbell")}</option>
+              <option value="bodyweight">{t("iq.equipmentOptions.bodyweight")}</option>
+              <option value="machine">{t("iq.equipmentOptions.machine")}</option>
+              <option value="cable">{t("iq.equipmentOptions.cable")}</option>
+              <option value="kettlebell">{t("iq.equipmentOptions.kettlebell")}</option>
+              <option value="resistance-band">{t("iq.equipmentOptions.resistance-band")}</option>
+            </select>
           </Field>
 
           {/* ── "Primary muscle only" and "Exercise ID" fields removed ── */}

@@ -23,6 +23,8 @@ export interface UseExerciseFiltersReturn {
   openModal: () => void;
   /** Update a single key in the draft */
   setDraftField: <K extends keyof ExerciseFilters>(key: K, value: ExerciseFilters[K]) => void;
+  /** Update a single key in the committed filters immediately */
+  setCommittedField: <K extends keyof ExerciseFilters>(key: K, value: ExerciseFilters[K]) => void;
   /** Commit draft → committed (strips empty values) */
   applyDraft: () => void;
   /** Clear both committed and draft */
@@ -58,6 +60,20 @@ export function useExerciseFilters(): UseExerciseFiltersReturn {
     value: ExerciseFilters[K]
   ) => setDraft((prev) => ({ ...prev, [key]: value }));
 
+  const setCommittedField = <K extends keyof ExerciseFilters>(
+    key: K,
+    value: ExerciseFilters[K]
+  ) => setCommitted((prev) => {
+    const next = { ...prev } as ExerciseFilters;
+    // treat empty values as removal
+    if (value === undefined || value === null || value === "") {
+      delete (next as Record<string, unknown>)[String(key)];
+    } else {
+      (next as Record<string, unknown>)[String(key)] = value;
+    }
+    return next;
+  });
+
   const applyDraft = () => setCommitted(stripEmpty(draft));
 
   const resetFilters = () => {
@@ -78,6 +94,7 @@ export function useExerciseFilters(): UseExerciseFiltersReturn {
     activeCount,
     openModal,
     setDraftField,
+    setCommittedField,
     applyDraft,
     resetFilters,
     removeFilter,

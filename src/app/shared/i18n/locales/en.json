@@ -97,6 +97,16 @@
     "difficultyHard": "Hard",
     "equipment": "Equipment",
     "equipmentPlaceholder": "e.g. dumbbell, barbell",
+    "allEquipment": "Any equipment",
+    "equipmentOptions": {
+      "barbell": "Barbell",
+      "dumbbell": "Dumbbell",
+      "bodyweight": "Bodyweight",
+      "machine": "Machine",
+      "cable": "Cable",
+      "kettlebell": "Kettlebell",
+      "resistance-band": "Resistance band"
+    },
     "primaryOnly": "Primary muscle only",
     "exerciseId": "Exercise ID",
     "activeFilters": "Active filters",
@@ -350,7 +360,9 @@
     "sets": "Sets",
     "reps": "Reps",
     "rest": "Rest",
-    "close": "Close"
+    "close": "Close",
+    "noDirectDemo": "No direct demo available for {{name}}.",
+    "openOnYouTube": "Open on YouTube"
   },
   "common": {
     "loading": "Loading…",

@@ -87,6 +87,16 @@
     "difficultyHard": "Важко",
     "equipment": "Обладнання",
     "equipmentPlaceholder": "напр. гантелі, штанга",
+    "allEquipment": "Будь-яке обладнання",
+    "equipmentOptions": {
+      "barbell": "Штанга",
+      "dumbbell": "Гантеля",
+      "bodyweight": "Вага тіла",
+      "machine": "Тренажер",
+      "cable": "Блоковий тренажер",
+      "kettlebell": "Кеттлбелл",
+      "resistance-band": "Еластична стрічка"
+    },
     "primaryOnly": "Лише основний мʼяз",
     "exerciseId": "ID вправи",
     "activeFilters": "Активні фільтри",
@@ -266,15 +276,15 @@
     ]
   },
   "bros": {
-    "title": "Брати",
+    "title": "Друзі",
     "subtitle": "Друзі та легенди.",
-    "myBros": "Мої Брати",
+    "myBros": "Мої Друзі",
     "friends": "Друзі",
     "incomingRequests": "Вхідні запити",
     "outgoingRequests": "Вихідні запити",
-    "findBros": "Знайти братів",
+    "findBros": "Знайти друзів",
     "viewWorkouts": "Переглянути тренування",
-    "back": "Назад до братів",
+    "back": "Назад до друзів",
     "workoutsOf": "Тренування {{name}}",
     "noWorkouts": "Тренувань ще немає.",
     "myFriends": "Мої друзі",
@@ -282,7 +292,7 @@
     "searchResults": "Результати пошуку",
     "noSearchResults": "Користувачів не знайдено",
     "typeToSearch": "Введіть щонайменше 2 символи",
-    "sendRequest": "Додати брата",
+    "sendRequest": "Додати друга",
     "requestSent": "Запит надіслано",
     "alreadyFriends": "Вже друзі",
     "acceptRequest": "Прийняти",
@@ -339,7 +349,9 @@
     "sets": "Підходи",
     "reps": "Повторення",
     "rest": "Відпочинок",
-    "close": "Закрити"
+    "close": "Закрити",
+    "noDirectDemo": "Прямої демонстрації для {{name}} немає.",
+    "openOnYouTube": "Відкрити на YouTube"
   },
   "common": {
     "loading": "Завантаження…",

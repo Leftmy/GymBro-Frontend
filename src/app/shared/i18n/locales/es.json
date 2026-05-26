@@ -56,6 +56,16 @@
     "difficultyHard": "Difícil",
     "equipment": "Equipamiento",
     "equipmentPlaceholder": "ej. mancuerna, barra",
+    "allEquipment": "Cualquier equipamiento",
+    "equipmentOptions": {
+      "barbell": "Barra",
+      "dumbbell": "Mancuerna",
+      "bodyweight": "Peso corporal",
+      "machine": "Máquina",
+      "cable": "Polea",
+      "kettlebell": "Pesa rusa",
+      "resistance-band": "Bandas de resistencia"
+    },
     "primaryOnly": "Solo músculo principal",
     "exerciseId": "ID del ejercicio",
     "activeFilters": "Filtros activos",
@@ -265,7 +275,15 @@
     "titleRequired": "El título es obligatorio.",
     "bodyRequired": "El contenido es obligatorio."
   },
-  "video": { "watch": "Ver demo", "sets": "Series", "reps": "Reps", "rest": "Descanso", "close": "Cerrar" },
+  "video": {
+    "watch": "Ver demo",
+    "sets": "Series",
+    "reps": "Reps",
+    "rest": "Descanso",
+    "close": "Cerrar",
+    "noDirectDemo": "No hay una demo directa para {{name}}.",
+    "openOnYouTube": "Abrir en YouTube"
+  },
   "common": {
     "loading": "Cargando…",
     "selectLanguage": "Idioma",
